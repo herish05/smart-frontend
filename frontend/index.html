@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Desk Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --desk-text-dark: #2c3e50;
+            --desk-text-light: #f4f6f8;
+            --primary-yellow: #f1c40f;
+            --primary-green: #27ae60;
+            --primary-brown: #795548;
+            --border: rgba(0,0,0,0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
+
+        body {
+            /* THIS IS THE MAGIC LINE: It adds a 85% white overlay on top of bg.jpg */
+            background-image: linear-gradient(rgba(255,255,255,0.85), rgba(255,255,255,0.85)), url('bg.jpg');
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: var(--desk-text-dark);
+            padding: 3rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header { text-align: center; margin-bottom: 3rem; background: rgba(255,255,255,0.9); padding: 1rem 2rem; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
+        header h1 { font-family: 'Playfair Display', serif; font-size: 2.5rem; letter-spacing: 2px; color: #1a1a1a; }
+        header p { color: #555; font-size: 1rem; margin-top: 0.5rem; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem; width: 100%; max-width: 1100px; }
+
+        .card { padding: 2rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+        .card h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; padding-bottom: 0.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.75rem; }
+
+        .card-green { background-color: var(--primary-green); color: var(--desk-text-light); }
+        .card-green h2 { border-bottom: 1px solid rgba(255,255,255,0.3); }
+
+        .card-yellow { background-color: var(--primary-yellow); color: var(--desk-text-dark); }
+        .card-yellow h2 { border-bottom: 1px solid rgba(0,0,0,0.1); }
+
+        .card-brown { background-color: var(--primary-brown); color: var(--desk-text-light); }
+        .card-brown h2 { border-bottom: 1px solid rgba(255,255,255,0.3); }
+
+        .card-history { background-color: rgba(253, 253, 253, 0.95); border: 2px solid #ddd; border-top: 4px solid var(--primary-green); }
+        .card-history h2 { color: var(--desk-text-dark); border-bottom: 1px solid rgba(0,0,0,0.1); }
+
+        .input-group { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+        input { flex: 1; min-width: 200px; padding: 0.8rem 1rem; border: 2px solid var(--border); border-radius: 10px; outline: none; background-color: #fff; }
+        .card-yellow input { color: var(--desk-text-dark); border-color: rgba(0,0,0,0.1); }
+
+        button { padding: 0.8rem 1.5rem; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; text-transform: uppercase; font-size: 0.85rem; transition: background-color 0.2s, transform 0.1s; }
+        button:active { transform: scale(0.97); }
+
+        .card-green button { background-color: #fff; color: var(--primary-green); }
+        .card-yellow button { background-color: var(--desk-text-dark); color: var(--primary-yellow); }
+        .card-brown button { background-color: #fff; color: var(--primary-brown); }
+        .card-history button { background-color: var(--primary-green); color: #fff; }
+
+        .center-text { text-align: center; }
+        .quote { font-size: 1.1rem; font-style: italic; line-height: 1.4; padding: 0 1rem; }
+        .author { margin-top: 0.75rem; opacity: 0.7; font-size: 0.9rem; }
+        
+        .weather-info { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem; }
+        .temp-display { text-align: center; border-right: 1px solid rgba(255,255,255,0.2); }
+        .temp-display .temp { font-size: 3rem; font-weight: 600; }
+        .temp-display .unit { font-size: 1.2rem; }
+        .condition-display { text-align: center; }
+        .condition-display .icon { font-size: 3rem; margin-bottom: 0.5rem; }
+        .condition-display .cond-text { font-size: 1.1rem; opacity: 0.8; }
+
+        .history { list-style: none; max-height: 250px; overflow-y: auto; }
+        .history li { padding: 1rem 0; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; font-size: 0.95rem; align-items: center; }
+        .history li:last-child { border-bottom: none; }
+        .msg-time-container { display: flex; flex-direction: column; align-items: flex-end; }
+        .msg-text { font-weight: 500; display: flex; align-items: center; gap: 0.5rem; color: #1a1a1a; }
+        .msg-text i { font-size: 0.9rem; color: #555; }
+        .time { color: #888; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SMART DESK</h1>
+        <p>Dashboard & Controller</p>
+    </header>
+    <div class="grid">
+        <div class="card card-green">
+            <h2><i class="fas fa-paper-plane"></i> Send to your desk</h2>
+            <div class="input-group">
+                <input type="text" id="msg" placeholder="E.g., Back in 10 mins">
+                <button onclick="sendMsg()">Send</button>
+            </div>
+        </div>
+
+        <div class="card card-yellow">
+            <h2><i class="fas fa-quote-left"></i> Daily Inspiration</h2>
+            <div class="center-text">
+                <p id="q-text" class="quote">"Click to generate"</p>
+                <p id="q-author" class="author"></p>
+            </div>
+            <button onclick="getQuote()">Generate</button>
+        </div>
+
+        <div class="card card-brown">
+            <h2><i class="fas fa-cloud-sun"></i> Desk Weather</h2>
+            <div class="input-group">
+                <input type="text" id="city" placeholder="City name...">
+                <button onclick="getWeather()">Check</button>
+            </div>
+            <div class="weather-info" id="w-display" style="display: none;">
+                <div class="temp-display">
+                    <span class="temp" id="w-temp"></span><span class="unit">°C</span>
+                </div>
+                <div class="condition-display">
+                    <div class="icon" id="w-icon"></div>
+                    <div id="w-cond" class="cond-text"></div>
+                    <div id="w-city-name" style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-history" style="grid-column: 1 / -1;">
+            <h2><i class="fas fa-history"></i> Recent Messages</h2>
+            <ul class="history" id="history"></ul>
+        </div>
+    </div>
+
+    <script>
+        // --- ⚠️ UPDATE THIS URL AFTER DEPLOYING BACKEND ON VERCEL ⚠️ ---
+        const BACKEND_URL = "http://localhost:3000"; 
+        // Example: const BACKEND_URL = "https://smart-desk-backend.vercel.app";
+        // ---------------------------------------------------------------
+
+        function setLoading(id, isLoading) {
+            const el = document.getElementById(id);
+            if (isLoading) el.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            else el.innerHTML = '';
+        }
+
+        async function fetchHistory() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/history`);
+                const data = await res.json();
+                document.getElementById('history').innerHTML = data.map(m => {
+                    const date = new Date(m.timestamp);
+                    return `<li>
+                        <span class="msg-text"><i class="fas fa-comment-dots"></i> ${m.text}</span>
+                        <span class="msg-time-container">
+                            <span class="time">${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            <span class="time" style="font-size: 0.75rem">${date.toLocaleDateString([], {month: 'short', day: 'numeric'})}</span>
+                        </span>
+                    </li>`
+                }).join('');
+            } catch (e) {
+                console.error("Failed to load history", e);
+            }
+        }
+
+        async function sendMsg() {
+            const textEl = document.getElementById('msg');
+            const text = textEl.value;
+            if(!text) return;
+            textEl.disabled = true;
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/message`, { 
+                    method: 'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body: JSON.stringify({text}) 
+                });
+                if (res.ok) { textEl.value = ''; fetchHistory(); } 
+                else { alert("Error sending message."); }
+            } catch(e) { console.error(e); alert("Network error. Is backend running?"); }
+            finally { textEl.disabled = false; }
+        }
+
+        async function getQuote() {
+            setLoading('q-author', true);
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/quote`);
+                const data = await res.json();
+                document.getElementById('q-text').innerText = `"${data.text}"`;
+                document.getElementById('q-author').innerText = `- ${data.author}`;
+            } catch(e) { document.getElementById('q-text').innerText = "Failed to load quote."; setLoading('q-author', false); }
+        }
+
+        async function getWeather() {
+            const city = document.getElementById('city').value.trim();
+            if (!city) return alert("Please enter a city name");
+            
+            const display = document.getElementById('w-display');
+            display.style.display = 'none';
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/weather?city=${encodeURIComponent(city)}`);
+                const data = await res.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                document.getElementById('w-temp').innerText = data.temperature;
+                document.getElementById('w-cond').innerText = data.condition;
+                document.getElementById('w-city-name').innerText = data.city;
+                
+                let iconHTML = '';
+                const cond = data.condition.toLowerCase();
+                if (cond.includes('clear') || cond.includes('sunny')) iconHTML = '<i class="fas fa-sun" style="color: #f1c40f;"></i>';
+                else if (cond.includes('partly')) iconHTML = '<i class="fas fa-cloud-sun" style="color: #f8f9fa;"></i>';
+                else if (cond.includes('cloudy') || cond.includes('fog')) iconHTML = '<i class="fas fa-cloud" style="color: #d7ccc8;"></i>';
+                else if (cond.includes('rain')) iconHTML = '<i class="fas fa-cloud-rain" style="color: #3498db;"></i>';
+                else if (cond.includes('snow')) iconHTML = '<i class="fas fa-snowflake" style="color: #ffffff;"></i>';
+                else if (cond.includes('thunder')) iconHTML = '<i class="fas fa-bolt" style="color: #f1c40f;"></i>';
+                else iconHTML = '<i class="fas fa-cloud-sun" style="color: #fafafa;"></i>';
+                
+                document.getElementById('w-icon').innerHTML = iconHTML;
+                display.style.display = 'grid';
+            } catch(e) { console.error(e); alert("Failed to fetch weather. Please try again."); }
+        }
+
+        fetchHistory(); // Load history on start
+    </script>
+</body>
+</html>
